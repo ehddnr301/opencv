@@ -1,7 +1,35 @@
 import cv2
 import tensorflow as tf
 
-new_model = tf.keras.models.load_model('cnn.h5')
+
+
+def create_model():
+    model = Sequential()
+    model.add(Conv2D(64, (3,3), activation='relu', strides=(2,2), input_shape=(IMAGE_WIDTH,IMAGE_HEIGHT,IMAGE_CHANNELS)))
+    model.add(Conv2D(64, (3,3), activation='relu'))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(64, (3,3), activation='relu'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(64, (3,3), activation='relu'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(126, (3,3), activation='relu'))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Dropout(0.2))
+    model.add(Conv2D(126, (3,3), activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(Flatten())
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.3))
+    model.add(Dense(1, activation = 'sigmoid'))
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
+    return model
+
+new_model = create_model()
+new_model.load_weights('hwe.hdf5')
+
+
 
 cap = cv2.VideoCapture(0)
 face_pattern = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
