@@ -8,6 +8,15 @@ from tensorflow.keras.applications import MobileNetV2
 import urllib.request
 import time
 
+IMAGE_WIDTH=100
+IMAGE_HEIGHT=100
+IMAGE_CHANNELS=3
+timer=10
+URL='https://arcane-journey-80807.herokuapp.com'
+URL_TRUE='https://arcane-journey-80807.herokuapp.com/helmetTrue?password=capston'
+URL_FALSE='https://arcane-journey-80807.herokuapp.com/helmetFalse?password=capston'
+
+
 def create_model():
     mobileNetModel = MobileNetV2(weights=None, include_top=False)
     model = Sequential()
@@ -19,6 +28,18 @@ def create_model():
 
 new_model = create_model()
 new_model.load_weights('helmet.hdf5')
+
+def send_signal(helmet):
+        global timer
+        if(timer <0):
+                if(helmet):
+                        sendSignal = urllib.request.urlopen(URL_TRUE).read().decode('utf-8')
+                        print(sendSignal)
+                        timer = 10
+                else:
+                        sendSignal = urllib.request.urlopen(URL_FALSE).read().decode('utf-8')
+                        print(sendSignal)
+                        timer = 10
 
 cap = cv2.VideoCapture(0)
 face_pattern = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
@@ -34,11 +55,16 @@ while True:
                 img2 = img_to_array(img2)
                 img3 = np.expand_dims(img2,0)
                 score = new_model.predict(img3)
-                cv2.putText(frame, str(score), (10,450), cv2.FONT_HERSHEY_SIMPLEX,3,(0,255,0),2)
-                if(score > 0.5):
+                if(score > 0.85):
+                        cv2.putText(frame, 'Helmet' + str(score), (10,450), cv2.FONT_HERSHEY_SIMPLEX,2,(0,255,0),2)
+                        send_signal(True)
                         print('true')
-                else:
+                elif(score <0.15):
+                        cv2.putText(frame, 'NoHelmet' + str(score), (10,450), cv2.FONT_HERSHEY_SIMPLEX,2,(0,0,255),2)
+                        send_signal(False)
                         print('false')
+                else:
+                        cv2.putText(frame, 'NowComputing', (10,450), cv2.FONT_HERSHEY_SIMPLEX,2,(255,0,0),2)
         cv2.imshow('image', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
